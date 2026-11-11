@@ -1,0 +1,33 @@
+# 生产环境示例：Nginx 反向代理 + Basic Auth + HTTPS (Let's Encrypt)
+# 使用前请：
+# 1. 修改 domain.example.com 为你的域名
+# 2. 生成 htpasswd: `htpasswd -c /etc/nginx/.htpasswd admin`
+# 3. 申请证书: `certbot certonly --standalone -d domain.example.com`
+# 4. 将证书挂载到 nginx 容器
+
+services:
+  upnp-ui:
+    image: ghcr.io/matrixmango/hwassassin/upnp-ui:latest
+    container_name: upnp-ui
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+    # 仅监听本地，不直接暴露 8080
+    # network_mode: host 已绑定宿主机 8080，nginx 反代即可
+
+  nginx:
+    image: nginx:alpine
+    container_name: upnp-ui-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - ./htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - upnp-ui

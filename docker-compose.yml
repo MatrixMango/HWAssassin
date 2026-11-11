@@ -1,0 +1,13 @@
+services:
+  upnp-ui:
+    build: .
+    container_name: upnp-ui
+    restart: unless-stopped
+    network_mode: host          # 必须 host 网络才能发现网关 SSDP
+    volumes:
+      - ./data:/data            # 持久化 SQLite
+    environment:
+      - TZ=Asia/Shanghai
+    # 可选：限制只能访问特定网关（多网关环境）
+    # environment:
+    #   - UPNP_GATEWAY_URL=http://192.168.1.1:5000/rootDesc.xml
